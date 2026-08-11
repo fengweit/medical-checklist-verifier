@@ -1,0 +1,380 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fengweit/medical-checklist-verifier/schemas/checklist-digester.v1.schema.json",
+  "title": "Checklist Digester v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "extraction",
+    "checklist",
+    "items",
+    "diagnostics",
+    "exclusions",
+    "warnings",
+    "statistics"
+  ],
+  "properties": {
+    "schema_version": {"const": "checklist-digester.v1"},
+    "extraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "library",
+        "library_version",
+        "conversion_status",
+        "interpreter",
+        "adapter_mode",
+        "docling_schema_name",
+        "docling_schema_version"
+      ],
+      "properties": {
+        "library": {"const": "docling"},
+        "library_version": {"type": "string", "minLength": 1},
+        "conversion_status": {"const": "success"},
+        "interpreter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": {"const": "docling-structural"},
+            "version": {"type": "string", "minLength": 1}
+          }
+        },
+        "adapter_mode": {"enum": ["semantic_tables", "document_sections"]},
+        "docling_schema_name": {"const": "DoclingDocument"},
+        "docling_schema_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "source"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^checklist-[0-9a-f]{16}$"},
+        "title": {"type": "string", "minLength": 1},
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["filename", "media_type", "sha256"],
+          "properties": {
+            "filename": {"type": "string", "minLength": 1},
+            "media_type": {
+              "enum": [
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              ]
+            },
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/item"}
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tables_total",
+        "section_headers_total",
+        "role_tables",
+        "unknown_tables",
+        "table_items_discarded",
+        "items_emitted",
+        "requirements_emitted"
+      ],
+      "properties": {
+        "tables_total": {"type": "integer", "minimum": 0},
+        "section_headers_total": {"type": "integer", "minimum": 0},
+        "role_tables": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/roleTableDiagnostic"}
+        },
+        "unknown_tables": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/unknownTableDiagnostic"}
+        },
+        "table_items_discarded": {"type": "integer", "minimum": 0},
+        "items_emitted": {"type": "integer", "minimum": 1},
+        "requirements_emitted": {"type": "integer", "minimum": 1}
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/exclusion"}
+    },
+    "warnings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_count",
+        "requirement_count",
+        "explicit_requirement_count",
+        "normative_candidate_count",
+        "guidance_count"
+      ],
+      "properties": {
+        "item_count": {"type": "integer", "minimum": 1},
+        "requirement_count": {"type": "integer", "minimum": 1},
+        "explicit_requirement_count": {"type": "integer", "minimum": 0},
+        "normative_candidate_count": {"type": "integer", "minimum": 0},
+        "guidance_count": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "nullableString": {"type": ["string", "null"]},
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "docling_ref"],
+      "properties": {
+        "kind": {"enum": ["docling_table_cell", "docling_table", "docling_text"]},
+        "docling_ref": {"type": "string", "pattern": "^#/"},
+        "table_index": {"type": "integer", "minimum": 0},
+        "row_index": {"type": "integer", "minimum": 0},
+        "cell_index": {"type": "integer", "minimum": 0},
+        "page_number": {"type": "integer", "minimum": 1},
+        "bbox": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["l", "t", "r", "b"],
+          "properties": {
+            "l": {"type": "number"},
+            "t": {"type": "number"},
+            "r": {"type": "number"},
+            "b": {"type": "number"},
+            "coord_origin": {"type": "string"}
+          }
+        },
+        "segment_index": {"type": "integer", "minimum": 0},
+        "charspan": {
+          "type": "array",
+          "prefixItems": [
+            {"type": "integer", "minimum": 0},
+            {"type": "integer", "minimum": 0}
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "docling_table_cell"}}},
+          "then": {
+            "required": ["table_index", "row_index", "cell_index"],
+            "not": {"required": ["charspan"]},
+            "properties": {
+              "docling_ref": {"pattern": "^#/tables/[0-9]+$"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"kind": {"const": "docling_table"}}},
+          "then": {
+            "required": ["table_index"],
+            "not": {
+              "anyOf": [
+                {"required": ["row_index"]},
+                {"required": ["cell_index"]},
+                {"required": ["segment_index"]},
+                {"required": ["charspan"]}
+              ]
+            },
+            "properties": {
+              "docling_ref": {"pattern": "^#/tables/[0-9]+$"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"kind": {"const": "docling_text"}}},
+          "then": {
+            "not": {
+              "anyOf": [
+                {"required": ["table_index"]},
+                {"required": ["row_index"]},
+                {"required": ["cell_index"]},
+                {"required": ["segment_index"]}
+              ]
+            },
+            "properties": {
+              "docling_ref": {"pattern": "^#/texts/[0-9]+$"}
+            }
+          }
+        }
+      ]
+    },
+    "roleTableDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "docling_ref",
+        "table_index",
+        "roles",
+        "inference_method",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "docling_ref": {"type": "string", "pattern": "^#/tables/[0-9]+$"},
+        "table_index": {"type": "integer", "minimum": 0},
+        "roles": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "enum": [
+              "item",
+              "requirements",
+              "guidance",
+              "section",
+              "location",
+              "outcome",
+              "reference"
+            ]
+          },
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "inference_method": {
+          "enum": ["header_semantic", "content_aware", "inherited_schema"]
+        },
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "evidence": {"type": "object"}
+      }
+    },
+    "unknownTableDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "docling_ref",
+        "table_index",
+        "row_count",
+        "column_count",
+        "first_row",
+        "continuation_guidance_attached"
+      ],
+      "properties": {
+        "docling_ref": {"type": "string", "pattern": "^#/tables/[0-9]+$"},
+        "table_index": {"type": "integer", "minimum": 0},
+        "row_count": {"type": "integer", "minimum": 1},
+        "column_count": {"type": "integer", "minimum": 1},
+        "first_row": {"type": "array", "items": {"type": "string"}},
+        "continuation_guidance_attached": {"type": "boolean"}
+      }
+    },
+    "exclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "text", "source_reference"],
+      "properties": {
+        "reason": {"type": "string", "minLength": 1},
+        "text": {"type": "string", "minLength": 1},
+        "source_reference": {"$ref": "#/$defs/sourceReference"}
+      }
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "classification",
+        "derivation",
+        "source_reference"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^item-.+-requirement-"},
+        "text": {"type": "string", "minLength": 1},
+        "classification": {
+          "enum": ["explicit_requirement", "normative_candidate"]
+        },
+        "derivation": {
+          "enum": [
+            "explicit_requirement_cell_segment",
+            "item_cell_segment",
+            "guidance_requirement_cell",
+            "section_list_candidate",
+            "section_modal_candidate"
+          ]
+        },
+        "source_reference": {"$ref": "#/$defs/sourceReference"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"classification": {"const": "explicit_requirement"}}
+          },
+          "then": {
+            "properties": {
+              "derivation": {
+                "enum": [
+                  "explicit_requirement_cell_segment",
+                  "item_cell_segment",
+                  "guidance_requirement_cell"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"classification": {"const": "normative_candidate"}}
+          },
+          "then": {
+            "properties": {
+              "derivation": {
+                "enum": ["section_list_candidate", "section_modal_candidate"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "guidanceEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "source_reference"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1},
+        "source_reference": {"$ref": "#/$defs/sourceReference"}
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "declared_reference",
+        "source_reference",
+        "guidance",
+        "requirements"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^item-[0-9]{4}-[0-9a-f]{10}$"},
+        "label": {"type": "string", "minLength": 1},
+        "section_title": {"$ref": "#/$defs/nullableString"},
+        "declared_reference": {"$ref": "#/$defs/nullableString"},
+        "declared_location": {"$ref": "#/$defs/nullableString"},
+        "source_reference": {"$ref": "#/$defs/sourceReference"},
+        "guidance": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/guidanceEntry"}
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/requirement"}
+        }
+      }
+    }
+  }
+}

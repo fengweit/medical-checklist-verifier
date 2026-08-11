@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.DS_Store
+
+# Never commit real checklist/source packages or generated customer digests.
+backtest-output/
+digests/

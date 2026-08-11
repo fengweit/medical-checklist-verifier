@@ -1,0 +1,86 @@
+{
+  "schema_version": "td-checklist-backtest.v1",
+  "cases": [
+    {
+      "filename": "BSI MD MDR Best Practice Documentation Submissions.pdf",
+      "sha256": "1868fcd5270e52a94a42a2db08a4ecf3b255ba64178c4eb0ed0f19e31da82872",
+      "adapter_mode": "semantic_tables",
+      "item_count": 96,
+      "requirement_count": 96,
+      "explicit_requirement_count": 96,
+      "normative_candidate_count": 0,
+      "guidance_count": 95,
+      "minimum_role_tables": 20,
+      "required_exclusion_reasons": [
+        "document_index_table",
+        "section_or_category_row"
+      ],
+      "expected_derivations": {"guidance_requirement_cell": 96},
+      "required_label_substrings": [
+        "6.2.2 Electrical safety test reports",
+        "6.18.1 Draft Declaration of conformity"
+      ],
+      "forbidden_item_labels": ["Contents", "MDR Documentation Submissions", "BSI Group America Inc."]
+    },
+    {
+      "filename": "MHS MDR TD Submission Checklist.docx",
+      "sha256": "b97dee2e776770b0a5d58fe0e5a00ac1616ef4cea7b6dd8d0172e8df8d5b5511",
+      "adapter_mode": "semantic_tables",
+      "item_count": 71,
+      "requirement_count": 114,
+      "explicit_requirement_count": 114,
+      "normative_candidate_count": 0,
+      "guidance_count": 0,
+      "minimum_role_tables": 60,
+      "required_exclusion_reasons": ["unfilled_template_context_row"],
+      "expected_derivations": {"item_cell_segment": 114},
+      "required_label_substrings": [
+        "TD is presented in a clear",
+        "post-market surveillance report"
+      ],
+      "forbidden_item_labels": ["Submission check", "YES NO N/A"]
+    },
+    {
+      "filename": "P05 tuv-rheinland-mdr-td-guidance-june-2021 莱茵MDR检查表.pdf",
+      "sha256": "d25335808354000d8d9effda333ed5d93e9f4ac3441f96e6f379eeb254743106",
+      "adapter_mode": "semantic_tables",
+      "item_count": 86,
+      "requirement_count": 86,
+      "explicit_requirement_count": 86,
+      "normative_candidate_count": 0,
+      "guidance_count": 87,
+      "minimum_role_tables": 25,
+      "required_exclusion_reasons": [
+        "document_index_table",
+        "section_or_merged_context_cell"
+      ],
+      "expected_derivations": {"guidance_requirement_cell": 86},
+      "required_label_substrings": [
+        "Product and packaging stability Tests",
+        "EC Declaration of Conformity"
+      ],
+      "forbidden_item_labels": ["Table of Contents", "目录", "Each column to be completed by customer"]
+    },
+    {
+      "filename": "Team-NB-PositionPaper-BPG-TechnicalDocEU-MDR-2017-745-V3-20250409-updated.docx",
+      "sha256": "bee566e433fbf8a8f405eb972159f44e4ec36b3c41481f33e6947d19a54a0aaa",
+      "adapter_mode": "document_sections",
+      "item_count": 63,
+      "requirement_count": 836,
+      "explicit_requirement_count": 0,
+      "normative_candidate_count": 836,
+      "guidance_count": 0,
+      "minimum_section_headers": 70,
+      "required_exclusion_reasons": ["front_matter_section"],
+      "expected_derivations": {
+        "section_list_candidate": 604,
+        "section_modal_candidate": 232
+      },
+      "required_label_substrings": [
+        "Common required documentation",
+        "Periodic Safety Update Report"
+      ],
+      "forbidden_item_labels": ["Table of Contents", "Contents", "Scope of Document", "Abbreviations"]
+    }
+  ]
+}
